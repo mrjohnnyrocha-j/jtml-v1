@@ -1,0 +1,16 @@
+#html
+  #head
+    define pageTitle="Dynamic Example"\\
+    show "Title: #(pageTitle)"\\
+  \#head
+
+  #body
+    define username="Alice"\\
+    derive welcomeMsg="Welcome, #(username)!"\\
+    show "#(welcomeMsg)"\\
+
+    unbind username\\
+    show "After unbinding: #(username)"\\
+  \#body
+\#html
+cd ..

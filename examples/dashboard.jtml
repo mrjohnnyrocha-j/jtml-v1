@@ -1,0 +1,37 @@
+#html
+  #head
+    define pageTitle="Dashboard"\\
+    show "Loading page: Dashboard"\\
+  \#head
+
+  #body style:"display: grid; grid-template-columns: 200px 1fr; height:100vh;"
+    #aside style:"background: #333; color: white; padding: 10px;"
+      show "Sidebar"\\
+
+      #ul
+        #li
+          show "Home"\\
+        \#li
+
+        #li
+          show "Analytics"\\
+        \#li
+
+        #li
+          show "Settings"\\
+        \#li
+      \#ul
+    \#aside
+
+    #main style:"padding: 20px;"
+      show "Welcome to the dashboard!"\\
+      define userName="Alice"\\
+      show "Currently logged in as: Alice"\\
+
+      #section style:"border: 1px solid #ccc; margin-top:20px; padding:10px;"
+        define stats="12345"\\
+        show "Some stats or data: 12345"\\
+      \#section
+    \#main
+  \#body
+\#html

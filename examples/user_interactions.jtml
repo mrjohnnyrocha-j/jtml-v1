@@ -1,0 +1,32 @@
+define user = { "name": "Alice", "hoverCount": 0 }\\
+define userInput = ""\\
+
+function setUserName(newName)\\
+    user["name"] = newName\\
+\\
+
+function applyName()\\
+    user["name"] = "j"\\
+\\
+
+function incrementHover()\\
+    user["hoverCount"] = user["hoverCount"] + 1\\
+\\
+
+derive userClicksSquare = user["hoverCount"]*2\\
+
+element div class="app-container"\\
+    show "Current user: " + user["name"]\\
+
+    element input id="nameInput" placeholder="Enter new name" onInput=setUserName()\\
+        
+    #
+
+    element button id="applyBtn" onClick=applyName()\\
+        show "Apply Name"\\
+    #
+
+    element div class="hover-area" id="hoverDiv" onMouseOver=incrementHover()\\
+        show "Hover over me! Hover count: " + user["hoverCount"] + " and square of it: " + userClicksSquare\\
+    #
+#

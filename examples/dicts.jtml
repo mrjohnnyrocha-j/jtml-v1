@@ -1,0 +1,10 @@
+define user = { "name": "Alice", "hoverCount": 0 }\\
+
+function incrementHover(a)\\
+    user["hoverCount"] = user["hoverCount"] + 1\\
+\\
+derive a = user["hoverCount"]\\
+show a\\
+incrementHover(2)\\
+show user \\
+show a\\

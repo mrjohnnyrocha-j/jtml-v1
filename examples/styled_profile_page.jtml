@@ -1,0 +1,54 @@
+#html
+  #head
+    define pageTitle="User Profile"\\
+    show "Loading page: {pageTitle}"\\
+  \#head
+
+  #body style:"font-family: sans-serif;"
+    #header style:"background: #444; color: #fff; padding: 10px;"
+      show pageTitle\\
+      define userLoggedIn="Bob"\\
+
+      #nav style:"margin-top: 5px;"
+        #a href:"#", style:"color: #fff; margin-right: 10px"
+          show "Home"\\
+        \#a
+
+        #a href:"#", style:"color: #fff; margin-right: 10px"
+          show "Messages"\\
+        \#a
+
+        #a href:"#", style:"color: #fff;"
+          show "Logout"\\
+        \#a
+      \#nav
+    \#header
+
+    #section style:"padding: 20px;"
+      show "Welcome, {userLoggedIn}!"\\
+      define userAge="30"\\
+      derive greeting="Hello, {userLoggedIn}. You are {userAge} years old."\\
+      show "{greeting}"\\
+
+      #div style:"margin-top: 20px;"
+        #button onclick:"alert('Refreshing data...')"
+          show "Refresh Profile"\\
+        \#button
+      \#div
+
+      #ul style:"margin-top: 10px;"
+        define hobbies="Reading,Gaming,Cooking"\\
+        for (hobby in hobbies.split(','))\\
+          #li
+            show "{hobby}"\\
+          \#li
+        \\
+      \#ul
+    \#section
+
+    #footer style:"background: #eee; text-align:center; padding:10px; margin-top:20px;"
+      derive currentYear="new Date().getFullYear()"\\
+      show "© {currentYear} MySite Inc."\\
+    \#footer
+  \#body
+\#html
