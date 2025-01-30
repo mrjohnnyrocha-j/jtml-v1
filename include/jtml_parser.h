@@ -45,7 +45,7 @@ private:
     // Parses an assignment statement (e.g., 'a = 10\\')
     std::unique_ptr<ASTNode> parseAssignmentStatement(
         std::unique_ptr<ExpressionStatementNode> lhs);
-    std::unique_ptr<ExpressionStatementNode> parseReferenceExpression();
+    std::unique_ptr<ExpressionStatementNode> parseReferenceExpression(bool &validLHS);
     std::vector<std::unique_ptr<ExpressionStatementNode>> parseArguments();
 
     // Parses a derive statement (e.g., 'derive sum = a + b\\')
@@ -63,8 +63,6 @@ private:
     // Parses a define statement (e.g., 'define a = 2\\')
     std::unique_ptr<ASTNode> parseDefineStatement();
 
-    // Parses content items within a JtmlElement
-    std::unique_ptr<ASTNode> parseContentItem();
 
     // Parses an if-else statement
     std::unique_ptr<ASTNode> parseIfElseStatement();
@@ -101,18 +99,6 @@ private:
     std::unique_ptr<ASTNode> parseThrowStatement();
 
     // ------------------- JtmlElement Parsing Helpers -------------------
-
-    // Parses the body of a JtmlElement, including attributes and content items
-    void parseJtmlBody(JtmlElementNode& elem);
-
-    // Determines if the next tokens represent an attribute (IDENTIFIER ':' STRING_LITERAL)
-    bool lookAheadIsAttribute() const;
-
-    // Parses a list of attributes separated by commas
-    void parseAttributes(std::vector<JtmlAttribute>& attrs);
-
-    // Parses a single attribute (IDENTIFIER ':' STRING_LITERAL)
-    JtmlAttribute parseOneAttribute();
 
     // Parses a block of statements, enclosed by statement terminators
     void parseBlockStatementList(std::vector<std::unique_ptr<ASTNode>>& stmts) ;

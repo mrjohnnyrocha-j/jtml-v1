@@ -5,19 +5,11 @@
   <title>JTML Final Example</title>
 </head>
 <body>
-<!-- DefineStatementNode(identifier=user, expression={"name": Alice, "hoverCount": 0.000000000000000}) not explicitly transpiled. -->
-<!-- DefineStatementNode(identifier=userInput, expression=) not explicitly transpiled. -->
-<!-- FunctionDeclarationNode(name=setUserName, parameters=[{name: newName, type: }, ], returnType=, body=[AssignmentStatementNode(lhs=user[name], rhs=newName), ]) not explicitly transpiled. -->
-<!-- FunctionDeclarationNode(name=applyName, parameters=[], returnType=, body=[AssignmentStatementNode(lhs=user[name], rhs=j), ]) not explicitly transpiled. -->
-<!-- FunctionDeclarationNode(name=incrementHover, parameters=[], returnType=, body=[AssignmentStatementNode(lhs=user[hoverCount], rhs=(user[hoverCount] + 1.000000000000000)), ]) not explicitly transpiled. -->
-<!-- DeriveStatementNode(identifier=userClicksSquare, declaredType=, expression=(user[hoverCount] * 2.000000000000000)) not explicitly transpiled. -->
-<div id="elem_1" data-jtml-attr-class="attr_1"><div id="expr_2">{{(Current user:  + user[name])}}</div>
-<input id="elem_2" data-jtml-attr-id="attr_3" data-jtml-attr-placeholder="attr_4" onInput="sendEvent('attr_5', 'onInput', ['setUserName()', event.target.value])"></input>
-<button id="elem_3" data-jtml-attr-id="attr_6" onClick="sendEvent('attr_7', 'onClick', ['applyName()'])"><div id="expr_8">{{Apply Name}}</div>
-</button>
-<div id="elem_4" data-jtml-attr-class="attr_9" data-jtml-attr-id="attr_10" onMouseOver="sendEvent('attr_11', 'onMouseOver', ['incrementHover()'])"><div id="expr_12">{{(((Hover over me! Hover count:  + user[hoverCount]) +  and square of it: ) + userClicksSquare)}}</div>
-</div>
-</div>
+<!-- DefineStatementNode(identifier=tasks, expression=[{"title": Buy groceries, "done": false}, {"title": Pay bills, "done": false}, {"title": Feed cat, "done": true}]) not explicitly transpiled. -->
+<div id="expr_1">{{(tasks.pop())}}</div>
+<!-- ExpressionNode(expression=(tasks.push(1.000000000000000))) not explicitly transpiled. -->
+<div id="expr_2">{{(tasks.size())}}</div>
+<div id="expr_3">{{tasks}}</div>
 
   <script>
         const ws = new WebSocket('ws://localhost:8080');

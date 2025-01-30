@@ -99,10 +99,6 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
         std::cout << "[DEBUG] Found 'throw' statement.\n";
         return parseThrowStatement();
     }
-    if (check(TokenType::HASH)) { 
-        std::cout << "[DEBUG] Found JtmlElement (#).\n";
-        return parseJtmlElement();
-    }
     if (check(TokenType::ELEMENT)) {
         std::cout << "[DEBUG] Found JtmlElement (element).\n";
         return parseJtmlElement();
@@ -110,7 +106,8 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
 
     // Handle assignment statements
     if (canBeReferenceExpression()) {
-        auto potentialLHS = parseReferenceExpression();
+        bool validLHS = false;
+        auto potentialLHS = parseReferenceExpression(validLHS);
         std::cout << "[DEBUG] Found potential LHS expression: " << potentialLHS->toString() << "\n";
         if (check(TokenType::ASSIGN)) {
             // If '=' follows, it's an assignment statement
@@ -185,7 +182,7 @@ std::unique_ptr<ASTNode> Parser::parseAssignmentStatement(
     return node;
 }
 
-std::unique_ptr<ExpressionStatementNode> Parser::parseReferenceExpression() {
+std::unique_ptr<ExpressionStatementNode> Parser::parseReferenceExpression(bool &validLHS) {
     // Consume the initial identifier token (e.g., variable name)
     Token idTok = consume(TokenType::IDENTIFIER, "Expected an identifier for reference expression.");
 
@@ -202,16 +199,32 @@ std::unique_ptr<ExpressionStatementNode> Parser::parseReferenceExpression() {
             // Consume the property or method name identifier
             Token memberToken = consume(TokenType::IDENTIFIER, "Expected property or method name after '.'");
 
-            
-            // Property Access: e.g., obj.prop
+            if (match(TokenType::LPAREN)) {
+                // Method call detected: obj.method(args)
+                std::vector<std::unique_ptr<ExpressionStatementNode>> arguments;
+                if (!check(TokenType::RPAREN)) {
+                    do {
+                        arguments.push_back(parseExpression());
+                    } while (match(TokenType::COMMA));
+                }
+                consume(TokenType::RPAREN, "Expected ')' after function call arguments.");
 
-            // Create an ObjectPropertyAccessExpressionNode representing the property access
-            expr = std::make_unique<ObjectPropertyAccessExpressionNode>(
-                std::move(expr),             // Base object expression (e.g., 'obj')
-                memberToken.text            // Property name (e.g., 'prop')
-            );
+                expr = std::make_unique<ObjectMethodCallExpressionNode>(
+                    std::move(expr), 
+                    memberToken.text, 
+                    std::move(arguments)
+                );
 
-            std::cout << "[DEBUG] Parsed property access: " << memberToken.text << "\n";
+                validLHS = false; // A method call cannot be an LHS
+                std::cout << "[DEBUG] Parsed method call: " << memberToken.text << "\n";
+            } else {
+                // Property access: obj.prop
+                expr = std::make_unique<ObjectPropertyAccessExpressionNode>(
+                    std::move(expr), memberToken.text
+                );
+
+                std::cout << "[DEBUG] Parsed property access: " << memberToken.text << "\n";
+            }
         
         }
         else if (match(TokenType::LBRACKET)) {
@@ -348,25 +361,7 @@ std::unique_ptr<ASTNode> Parser::parseDefineStatement() {
 
 // Parses a single top-level JtmlElement (e.g., '#div ... \\#div')
 std::unique_ptr<JtmlElementNode> Parser::parseJtmlElement() {
-    if (check(TokenType::HASH)) {
-        consume(TokenType::HASH, "Expected '#'");
-        Token openTag = consume(TokenType::IDENTIFIER, "Expected identifier after '#'");
 
-        auto elem = std::make_unique<JtmlElementNode>();
-        elem->tagName = openTag.text;
-
-        // Parse jtmlBody? (if not immediately BACKSLASH_HASH or EOF)
-        if (!check(TokenType::BACKSLASH_HASH) && !check(TokenType::END_OF_FILE)) {
-            parseJtmlBody(*elem);
-        }
-
-        consume(TokenType::BACKSLASH_HASH, "Expected '\\#'");
-        Token closeTag = consume(TokenType::IDENTIFIER, "Expected identifier after '\\#'");
-        if (closeTag.text != openTag.text) {
-            recordError("Mismatched closing tag at line " + std::to_string(closeTag.line) + ": " + closeTag.text + " != " + openTag.text);
-        }
-        return elem;
-    } else {
         std::cout << "[DEBUG] Parsing JtmlElement at token position: " << m_pos << "\n";
 
         auto elem = std::make_unique<JtmlElementNode>();
@@ -416,64 +411,7 @@ std::unique_ptr<JtmlElementNode> Parser::parseJtmlElement() {
                 << attributes.size() << " attributes and " << body.size() << " body nodes.\n";
 
         return elem;
-    }
-}
-
-// Parses the body of a JtmlElement, including attributes and content items
-void Parser::parseJtmlBody(JtmlElementNode& elem) {
-    // Optional attributes
-    if (lookAheadIsAttribute()) {
-        parseAttributes(elem.attributes);
-        match(TokenType::STMT_TERMINATOR); // Optional
-    }
-    // Parse zero or more content items
-    while (!check(TokenType::BACKSLASH_HASH) && !check(TokenType::END_OF_FILE)) {
-        auto stmt = parseStatement(); // Or parseContentItem
-        if (stmt) {
-            elem.content.push_back(std::move(stmt));
-        }
-    }
-}
-
-// Parses a list of attributes separated by commas
-void Parser::parseAttributes(std::vector<JtmlAttribute>& attrs) {
-    // attribute (',' attribute)*
-    attrs.push_back(parseOneAttribute());
-    while (match(TokenType::COMMA)) {
-        attrs.push_back(parseOneAttribute());
-    }
-}
-
-// Parses a single attribute (IDENTIFIER ':' STRING_LITERAL)
-JtmlAttribute Parser::parseOneAttribute() {
-    Token idTok = consume(TokenType::IDENTIFIER, "Expected identifier in attribute");
-    consume(TokenType::COLON, "Expected ':' in attribute");
-    auto exprNode = parseExpression();
-    return { idTok.text, std::move(exprNode) };
-}
-
-// Parses content items within a JtmlElement
-std::unique_ptr<ASTNode> Parser::parseContentItem() {
-    try {
-        if (check(TokenType::SHOW)) {
-            return parseShowStatement();
-        } else if (check(TokenType::DEFINE)) {
-            return parseDefineStatement();
-        } else if (check(TokenType::DERIVE)) {
-            return parseDeriveStatement();
-        } else if (check(TokenType::UNBIND)) {
-            return parseUnbindStatement();
-        } else if (check(TokenType::STORE)) {
-            return parseStoreStatement();
-        } else if (check(TokenType::HASH)) {
-            return parseJtmlElement();
-        }
-        throw std::runtime_error("Unexpected token '" + peek().text + "' in content item.");
-    } catch (const std::runtime_error& e) {
-        recordError(e.what());
-        synchronize();
-        return nullptr;
-    }
+    
 }
 
 // Parses an if-else statement
@@ -564,15 +502,18 @@ std::unique_ptr<ASTNode> Parser::parseForStatement() {
     std::unique_ptr<ExpressionStatementNode> rangeEndExpr = nullptr;
     if (match(TokenType::DOTS)) { // if the next token is '..'
         // parse the second expression, e.g. '5'
+
         rangeEndExpr = parseExpression();
+        
     }
 
     consume(TokenType::RPAREN, "Expected ')' after for(...) expression(s)");
 
     // Parse the body (a block of statements)
     std::vector<std::unique_ptr<ASTNode>> body;
+    std::cout << "[DEBUG FOR statement] Parsed range end expression: " << rangeEndExpr->toString() << "\n";
     parseBlockStatementList(body);
-
+    std::cout << "[DEBUG FOR statement] Parsed body " << "\n";
     // Build the ForStatementNode
     auto forNode = std::make_unique<ForStatementNode>();
     forNode->iteratorName = iteratorTok.text;
@@ -781,14 +722,6 @@ std::unique_ptr<ASTNode> Parser::parseThrowStatement() {
     return throwNode;
 }
 
-// Determines if the next tokens represent an attribute (IDENTIFIER ':' STRING_LITERAL)
-bool Parser::lookAheadIsAttribute() const {
-    // Need: IDENTIFIER : STRING_LITERAL
-    if (!check(TokenType::IDENTIFIER)) return false;
-    if (!checkNext(TokenType::COLON))  return false;
-    if (!checkNextNext(TokenType::STRING_LITERAL)) return false;
-    return true;
-}
 
 // Parses a block of statements, enclosed by statement terminators
 void Parser::parseBlockStatementList(std::vector<std::unique_ptr<ASTNode>>& stmts) {
@@ -836,7 +769,7 @@ Token Parser::consume(TokenType type, const std::string& errMsg) {
     std::string fullMsg = errMsg + " (line " + std::to_string(badToken.line) +
         ", col " + std::to_string(badToken.column) + "). Found: '" + badToken.text + "'";
     recordError(fullMsg);
-    synchronize();
+    // synchronize();
     return Token{TokenType::ERROR, "<error>", (int)m_pos, badToken.line, badToken.column};
 }
 
@@ -1117,12 +1050,16 @@ std::unique_ptr<ExpressionStatementNode> Parser::ExpressionParser::parsePrimary(
         return std::make_unique<NumberLiteralExpressionStatementNode>(tk);
     }
     if (match(TokenType::LPAREN)) {
-        m_parentParser.consume(TokenType::LPAREN, "Expected '(' to start expression");
+  
+        std::cout << "Parsing expression inside parens... \n";  
+        
         auto expr = parseExpression();
+  
         if (!match(TokenType::RPAREN)) {
             throw std::runtime_error("Expected ')' after expression");
         }
         m_parentParser.consume(TokenType::RPAREN, "Expected ')' to close expression");
+        std::cout << "Parsing expression inside parens " << expr->toString() << "\n";
         return expr;
     }
     // Error handling

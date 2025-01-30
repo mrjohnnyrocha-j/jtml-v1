@@ -2181,6 +2181,43 @@ std::shared_ptr<JTML::VarValue> Interpreter::evaluateExpression(const Expression
             // Evaluate the base object
             std::shared_ptr<JTML::VarValue> baseVal = evaluateExpression(methodCall->base.get(), env);
 
+            if (baseVal->isArray()) {
+                auto array = baseVal->getArray();
+                const std::string& methodName = methodCall->methodName;
+
+                // Evaluate the arguments
+                std::vector<std::shared_ptr<JTML::VarValue>> args;
+                for (const auto& argExpr : methodCall->arguments) {
+                    args.push_back(evaluateExpression(argExpr.get(), env));
+                }
+
+                // Call the array method
+                if (methodName == "push") {
+                    if (args.size() != 1) {
+                        throw std::runtime_error("push() expects exactly 1 argument.");
+                    }
+                    array->push(args[0]);
+                    return std::make_shared<JTML::VarValue>(array->size()); // Return new length
+                }
+                else if (methodName == "pop") {
+                    if (!args.empty()) {
+                        throw std::runtime_error("pop() expects no arguments.");
+                    }
+                    auto poppedValue = array->pop();
+                    return poppedValue; // Return the popped value
+                }
+                else if (methodName == "size") {
+                    if (!args.empty()) {
+                        throw std::runtime_error("size() expects no arguments.");
+                    }
+                    auto sizeValue = array->size();
+                    return std::make_shared<JTML::VarValue>(sizeValue);
+                }
+                else {
+                    throw std::runtime_error("Unsupported array method: " + methodName);
+                }
+            }
+
             if (!baseVal->isObject()) {
                 throw std::runtime_error("Attempted to call a method on a non-object.");
             }

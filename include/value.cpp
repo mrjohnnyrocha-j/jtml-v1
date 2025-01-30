@@ -19,6 +19,12 @@ namespace JTMLInterpreter {
     VarValue::VarValue(double val) : data(val) {}
 
     /**
+     * @brief Construct a size_t VarValue, converting it to double.
+     */
+
+    VarValue::VarValue(size_t val) : data(static_cast<double>(val)) {}
+
+    /**
      * @brief Construct a boolean VarValue.
      */
     VarValue::VarValue(bool val) : data(val) {}

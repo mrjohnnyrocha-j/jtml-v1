@@ -23,7 +23,7 @@ std::string loadFile(const std::string& filePath) {
 int main() {
     try {
         // 1) Load the .jtml code
-        std::string code = loadFile("examples/user_interactions.jtml");
+        std::string code = loadFile("examples/dicts.jtml");
 
         // 2) Lex & Parse
         Lexer lexer(code);

@@ -112,6 +112,11 @@ public:
     explicit VarValue(double val);
 
     /**
+     * @brief Construct a size_t VarValue, by converting it to double.
+     */
+    explicit VarValue(size_t val);
+    
+    /**
      * @brief Construct a boolean VarValue.
      */
     explicit VarValue(bool val);
