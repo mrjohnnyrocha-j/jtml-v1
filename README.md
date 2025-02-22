@@ -69,13 +69,6 @@ JTML is a reactive templating language that compiles to HTML+JavaScript with rea
 
 ### Compilation Pipeline
 
-mermaid
-
-Copy
-
-graph LR
-    JTML --> Lexer --> Tokens --> Parser --> AST --> Transpiler --> HTML/JS
-
 ### Reactivity System
 
 1.  **Dependency Graph**
